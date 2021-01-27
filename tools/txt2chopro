@@ -1,0 +1,102 @@
+#!/usr/bin/perl
+
+my @chords;
+my @chord_positions;
+
+print '<html><head><script type="text/javascript" src="chopro.js"></script></head><body><pre>'."\n";
+
+while(defined(my $line = <>))
+{
+	chomp($line);
+	my $textline = $line;
+
+	# A B#m C(text) (text)D E#maj/F#min G7
+	my $is_chordline = ($line =~ /^(\s*(\([^\s\)]+\))?[ABCDEFG]#?(b|m|maj|min|sus)?[2-9]?([\/\-][ABCDEFG]#?(b|m|maj|min|sus)?[2-9]?)?(\([^\s\)]+\))?(?=\s|$))+\s*$/) ? 1 : 0;
+
+	# chords are processed on next line
+	# don't used chord line as text for previous chords.
+	$textline = '' if ($is_chordline);
+
+	# process previous chord line
+	if(defined(@chords))
+	{
+		my @chars = split(//, $textline);
+		$textline = '';
+		my $pos = 0;
+		while(@chords)
+		{
+			my $chord = shift(@chords);
+			my $chord_pos = shift(@chord_positions);
+			while($pos < $chord_pos)
+			{
+				my $c = shift(@chars);
+				$c = ' ' unless(defined($c));
+				$textline .= $c;
+				$pos++;
+			}
+			$textline .= '[';
+			$textline .= $chord;
+			$textline .= ']';
+		}
+		$textline .= join('', @chars);
+		print "$textline\n";
+		undef @chords;
+		undef @chord_positions;
+		# do not also print the line unless it is blank
+		$textline = ($line eq '') ? '' : undef;
+	}
+
+	# store chord positions
+	if($is_chordline)
+	{
+		@chords = ();
+		@chord_positions = ();
+#		print "chord line $line\n";
+		my $pos = 0;
+		while($line ne '')
+		{
+			while($line =~ s/^\s//)
+			{
+				$pos++;
+			}
+			my $chord = '';
+			my $chord_pos = $pos;
+			while($line =~ s/^(\S)//)
+			{
+				$pos++;
+				$chord .= $1 ;
+			}
+			
+			if($chord ne '')
+			{
+				push(@chords, $chord);
+				push(@chord_positions, $chord_pos);
+			}
+		}
+	}
+	elsif(defined($textline))
+	{
+		print "$textline\n";
+	}
+}
+if(defined(@chords))
+{
+	$line = '';
+	while(@chords)
+	{
+		my $chord = shift(@chords);
+		my $chord_pos = shift(@chord_positions);
+		while($pos < $chord_pos)
+		{
+			$line .= ' ';
+			$pos++;
+		}
+		$line .= '[';
+		$line .= $chord;
+		$line .= ']';
+	}
+	print "$line\n";
+}
+
+print "</pre></body></html>\n";
+

@@ -1,0 +1,283 @@
+#!/usr/bin/python
+
+import subprocess
+import os
+import time
+import re
+import sys
+
+NONE = 0
+GUITARTEX = 1
+CHORDII = 2
+which_typesetter = GUITARTEX
+# which_typesetter = CHORDII
+guitartex_multicol = True
+
+chordpro_htmls = []
+for file in sys.stdin:
+    chordpro_htmls.append(file.rstrip())
+
+if len(sys.argv) < 3:
+    print "usage: %s book_title output_filename" % sys.argv[0]
+    print "provide chordpro files line by line on stdin" % sys.argv[0]
+    sys.exit(1)
+
+book_title = sys.argv[1]
+output_filename = sys.argv[2]
+
+book_date = time.strftime("%B %Y")
+
+print output_filename
+print chordpro_htmls
+
+chordpro_files = []
+
+comment_re = re.compile(r"[     ]*#.*")
+define_re = re.compile(r"\{define:\s*(?P<name>[()#/\w]+)\s+(?P<E>[ox\d])\s+(?P<A>[ox\d])\s+(?P<D>[ox\d])\s+(?P<G>[ox\d])\s+(?P<b>[ox\d])\s+(?P<e>[ox\d])")
+# {define:Fmaj7 1 0 3 2 1 x}
+columns_re = re.compile(r"\{columns:[   ]*(?P<columns>[0-9]+)")
+
+def make_chordii(filename, source_lines):
+
+    chordpro_lines = []
+
+    for line in source_lines:
+
+        if comment_re.match(line):
+            print "skipping commented line '%s'" % line
+            next
+
+        elif (line.find("{colb}") == 0) or (line.find("{columnbreak}") >= 0):
+
+            if chordpro_lines[0] != '{columns: 2}':
+                chordpro_lines.insert(0, '{columns: 2}')
+            chordpro_lines.append(line)
+
+        elif (line.find("{define:") >= 0):
+
+            # change define syntax
+            match = define_re.search(line)
+
+            if not match:
+
+                print >>sys.stderr, "warning, didn't parse chord definition '%s', passing through" % line
+                chordpro_lines.append(line)
+
+            else:
+                group = match.group
+                frets = [group(fret) for fret in ['E', 'A', 'D', 'G', 'b', 'e']]
+                minfret = min([int(fret) for fret in frets if fret not in ['x', 'X', 'o', 'O']])
+                if minfret < 3:
+                    minfret = 1
+                # revfrets = reversed(frets)
+                # new_define = "{define:%s %s %s}" % (group('name'), minfret, " ".join(revfrets))
+
+                frets = [fret.replace('0', 'o') for fret in frets]
+                new_define = "{define:%s %s %s}" % (group('name'), minfret, " ".join(frets))
+                chordpro_lines.append(new_define)
+
+        elif ((line.find("{pagebreak}") >= 0) or (line.find("{pageb}") >= 0) or
+            (line.find("{np}") >= 0)):
+
+            # the directive known by chordii is actually "new_page".
+
+            chordpro_lines.append("{new_page}")
+            where = len(chordpro_lines)
+
+        else:
+            chordpro_lines.append(line)
+
+    return chordpro_lines
+
+def make_guitartex(filename, source_lines):
+    where = 0
+    in_multicol_mode = False
+
+    chordpro_lines = []
+
+    for line in source_lines:
+        if comment_re.match(line):
+            next
+
+        elif (line.find("{define:") >= 0):
+
+            # change define syntax
+            match = define_re.search(line)
+
+            if not match:
+
+                print >>sys.stderr, "warning, didn't parse chord definition '%s', passing through" % line
+                chordpro_lines.append(line)
+
+            else:
+                group = match.group
+                frets = [group(fret) for fret in ['E', 'A', 'D', 'G', 'b', 'e']]
+                minfret = min([int(fret) for fret in frets if fret not in ['x', 'X', 'o', 'O']])
+                if minfret < 3:
+                    minfret = 1
+                # revfrets = reversed(frets)
+                # new_define = "{define:%s %s %s}" % (group('name'), minfret, " ".join(revfrets))
+
+                frets = [fret.replace('0', 'o') for fret in frets]
+                new_define = "{define:%s %s %s}" % (group('name'), minfret, " ".join(frets))
+                chordpro_lines.append(new_define)
+
+        elif ((line.find("{t:") >= 0) or (line.find("{title:") >= 0) or
+            (line.find("{st:") >= 0) or (line.find("{subtitle:") >= 0)):
+
+            chordpro_lines.append(line)
+            where = len(chordpro_lines)
+
+        elif (line.find("{colb}") >= 0) or (line.find("{columnbreak}") >= 0):
+
+            if not in_multicol_mode:
+
+                # assume two columns
+                chordpro_lines.insert(where, "\\begin{multicols}{2}")
+                in_multicol_mode = True
+
+            chordpro_lines.append("\\columnbreak")
+
+        elif (line.find("{columns:") >= 0):
+
+            if not in_multicol_mode:
+
+                match = columns_re.search(line)
+                if not match:
+                    print >>sys.stderr, "couldn't parse columns directive in %s at line '%s'" % (filename, line)
+                    sys.exit(1)
+
+                columns = int(match.group('columns'))
+                chordpro_lines.insert(where, "\\begin{multicols}{%d}" % columns)
+                in_multicol_mode = True
+
+            else:
+                print >>sys.stderr, "two column directives seen in %s" % filename
+                sys.exit(1)
+
+        elif ((line.find("{pagebreak}") >= 0) or (line.find("{pageb}") >= 0) or
+            (line.find("{np}") >= 0)):
+
+            # the directive known by guitartex is actually "np".
+
+            if in_multicol_mode:
+                chordpro_lines.append("\\end{multicols}")
+                in_multicol_mode = False
+
+            chordpro_lines.append("{np}")
+            where = len(chordpro_lines)
+
+        else:
+            chordpro_lines.append(line)
+
+    if in_multicol_mode:
+        chordpro_lines.append("\\end{multicols}")
+
+    return chordpro_lines
+
+if False:
+    lines = [
+    '{define:Fmaj7 1 0 3 2 1 x}'
+    ]
+    out = make_guitartex("test_file", lines)
+    for line in out:
+        print line
+    sys.exit(0)
+
+if False:
+    lines = [
+    '{title:the love boat}',
+    '{subtitle:who knows}',
+    'the love boat',
+    'soon will be making another run',
+    'the love boat',
+    '{colb}',
+    'soon will be taking off your pants',
+    '{np}',
+    'its your thing',
+    'do what you wanna do',
+    '{colb}',
+    'I cant tell you',
+    'who to sock it to',
+    ]
+    out = make_guitartex("test_file", lines)
+    for line in out:
+        print line
+    sys.exit(0)
+
+for html in chordpro_htmls:
+    source = "./" + html
+    chordpro = "guitartex/" + html.replace(".html", "")
+    chordpro_files.append(chordpro)
+
+    source_date = os.path.getmtime(source)
+    chordpro_exists = os.path.exists(chordpro)
+    if chordpro_exists:
+        chordpro_date = os.path.getmtime(chordpro)
+
+    if chordpro_exists and (source_date < chordpro_date):
+        print "%s is later than source file, skipping\n" % chordpro
+        pass
+    else:
+        source_file = open(source, "r")
+
+        instance = subprocess.Popen(args = "html2txt", stdin=source_file, stdout=subprocess.PIPE)
+        source_lines = [line.rstrip() for line in instance.stdout]
+        result = instance.wait()
+        source_file.close()
+        if result != 0:
+            print "failed with %d on %s\n" % (result, chordpro)
+            sys.exit(1)
+
+        if which_typesetter == GUITARTEX:
+            chordpro_lines = make_guitartex(source, source_lines)
+        elif which_typesetter == CHORDII:
+            chordpro_lines = make_chordii(source, source_lines)
+
+        chordpro_file = open(chordpro, "w")
+        print >>chordpro_file, "\n".join(chordpro_lines)
+        chordpro_file.close()
+   
+if which_typesetter == CHORDII:
+
+    allsongs = open(output_filename, "w")
+    firstsong = True
+
+    for chordpro in chordpro_files:
+
+        chordpro_file = open(chordpro)
+        buffer = chordpro_file.read()
+        chordpro_file.close()
+
+        if not firstsong:
+            # print >>allsongs, "\n{new_page}\n"
+            print >>allsongs, "\n{new_song}\n"
+        allsongs.write(buffer)
+
+        firstsong = False
+
+    allsongs.close()
+
+elif which_typesetter == GUITARTEX:
+
+    allsongs = open(output_filename, "w")
+
+    if guitartex_multicol:
+        print >>allsongs, "{preamble:\usepackage{multicol}}"
+
+    print >> allsongs, "{document_class:book}"
+
+    # This results in a TeX error!
+    # print >> allsongs, "{geometry:letterpaper,margin=.75in}"
+    print >> allsongs, "{geometry:margin=.75in}"
+    # print >> allsongs, "{font_size:10}"
+    # black and white printing:
+    print >> allsongs, "{color_chorus:.3,.3,.3}"
+
+    print >> allsongs, "{book_title:%s}" % book_title
+    print >> allsongs, "{book_date:%s}" % book_date
+
+    for chordpro in chordpro_files:
+        print >> allsongs, "{include:%s}" % chordpro
+
+    allsongs.close()

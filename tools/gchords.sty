@@ -1,0 +1,233 @@
+%
+% GCHORDS, a LaTeX2e package to draw guitar chord diagrams.
+%
+% version 1.3.1 by K.Peeters, t16@nikhef.nl
+%
+% See ChangeLog for a list of changes.
+% 
+%-------------------------------------------------------------------------
+% Variable, user definable stuff is below.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{gchords}
+
+
+% Your guitar
+\newcommand\strings{6}          % number of strings on your guitar
+\newcommand\numfrets{5}         % length (no of frets) of a diagram
+
+% These should be modified if you want chords in a different size
+\newcommand\mediumchords{
+\def\gchordsize{3.0mm}    % distance between two frets (and two strings)
+\font\fingerfont=cmr5    % font used for numbering fingers
+\font\namefont=cmr10     % font used for labeling of the chord
+\font\fretposfont=cmr7   % font used for the fret position marker
+\def\dampsymbol{$\scriptstyle\times$}    % symbol of the `damp this string' marker
+\def\opensymbol{$\scriptstyle\circ$}    % symbol of the `open this string' marker
+}
+\newcommand\smallchords{
+\def\gchordsize{2.0mm}    % distance between two frets (and two strings)
+\font\fingerfont=cmr5    % font used for numbering fingers
+\font\namefont=cmr10     % font used for labeling of the chord
+\font\fretposfont=cmr7   % font used for the fret position marker
+\def\dampsymbol{$\scriptstyle\times$}    % symbol of the `damp this string' marker
+\def\opensymbol{$\scriptstyle\circ$}    % symbol of the `open this string' marker
+}
+
+\smallchords
+
+% Dotsizes (which scale with the chordsize macro)
+\newcommand\fatsiz{1.6}         % size of a fat note
+\newcommand\normalsiz{1.2}      % size of a normal note
+\newcommand\fingsiz{1.4}      % size of the circle around a numbered finger
+\newcommand\fatfingsiz{1.8}      % size of the circle around a numbered finger
+
+% Position of the chord in its bounding box
+\newcommand\xoff{2}             % pos(\xoff,\yoff) is left lower corner of diagram
+\newcommand\yoff{2}
+
+%-------------------------------------------------------------------------
+
+\makeatletter
+\newcommand\basenote{\circle*{\fatsiz}}
+\newcommand\stdnote{\circle*{\normalsiz}}
+\newcommand\fingnote{\circle{\fingsiz}}
+\newcommand\fatfingnote{\circle{\fatfingsiz}}
+\newcommand\cvline{\line(0,1)}
+\newcommand\chline{\line(1,0)}
+
+\newcommand\gchords[1]{$$\hbox{#1}$$}
+\newcommand\chtext[1]{\vbox{\settowidth{\hsize}{#1 xxxx} {#1
+  \newdimen\ascale\ascale=\gchordsize\vskip8\ascale}}}
+
+% #1 modifiers (like num, or fretbar0)
+% #2 positions
+% #3 chordname
+
+\newcount\truewidth			% the true width of the diagram, computed from strings
+\newcount\topline
+\newcount\myvpos
+\newcount\mylength
+\newcount\fnum              % current f{...} value (number of finger)
+\newcount\fpos              % current p{...} value
+\newcount\ghor              % string number currently being drawn
+\newcount\prevpos           % previous value of p{...}, zero if no previous dot on string
+\newcount\dlen              % length of the vertical line to draw between dots
+\newcount\cpos              % scratch variable to hold vertical position of dot
+\newcount\stpos
+\newdimen\needsize
+
+\newcommand\gchord[3]{\vbox{\hbox{\newdimen\ascale\ascale=\gchordsize
+\truewidth=\strings\advance\truewidth by -1
+\advance\truewidth by \xoff
+\topline=\numfrets
+\advance\topline by \yoff
+\advance\topline by 2
+
+%%% The Diagram itself %%%%%%%%%
+\unitlength\ascale
+\begin{picture}(\truewidth,\topline)
+\advance\topline by -1
+\advance\truewidth by -\xoff
+\myvpos=\yoff\advance\myvpos by \numfrets
+%%% Parse the modifier string %%
+\newcommand\topbar{n}
+\@tfor\modstr:=#1\do 
+   { \if\modstr t{\thicklines\put(\xoff,\myvpos){\chline{\truewidth}}\thinlines}
+	 \else {\advance\topline by -2
+			\put(\xoff,\topline){\hbox to 0pt{\hss\fretposfont\modstr\ }}
+		   }
+	 \fi
+   }
+
+%%% Horizontal lines (frets)%%%%
+\mylength=0
+\myvpos=\yoff
+\advance\myvpos by 1  % first fret starts a bit higher
+\@whilenum \mylength<\numfrets \do {  
+  \put(\xoff,\myvpos){\chline{\truewidth}}
+  \advance\mylength by 1
+  \advance\myvpos   by 1}
+
+%%% The Dots %%%%%%%%%%%%%%%%%%%
+\newcommand\fnow{n}
+\newcommand\pnow{n}
+\newcommand\snow{n}
+
+\putdots{#2}{\gchordsize}
+\put(\xoff,0){\hbox to \truewidth\ascale{\hss\namefont #3\hss}}
+\end{picture}
+}}}
+
+%\newcommand{\putdots}[2]{\@tfor\thisele:=#1\do{\if\thisele {}{hi}
+%  \else\if\thisele p{}
+%  \else.\thisele{}\fi\fi}}
+
+\long\def\ReturnAfterFi#1\fi{\fi#1}
+    \def\f@rc#1#2#3{%
+      \def\temp@ty{#2}%
+      \ifx\@empty\temp@ty
+      \else
+        \ReturnAfterFi{%
+          \f@@rc#1#2\f@@rc{#3}%
+        }%
+      \fi
+    }%
+
+\def\@forc#1#2#3{\expandafter\f@rc\expandafter#1{#2 K}{#3}}
+%\def\f@rc#1#2#3{\def\temp@ty{#2}\ifx\@empty\temp@ty\else
+%                                    \f@@rc#1#2\f@@rc{#3}\fi}
+\def\f@@rc#1#2#3\f@@rc#4{\def#1{#2}#4\f@rc#1{#3}{#4}}
+
+%\newcommand{\putdots}[2]{\@tfor\thisel:=#1K\do{\message{(\thisel)}\ifx\thisel{}\else\if\thisel K{SHIT}\else\ifx\thisel p{}\else.\thisel{}\fi\fi\fi}}
+
+\newcommand{\putdots}[2]{
+  \prevpos=0
+  \fpos=0
+  \ghor=\xoff
+  \let\curnote\stdnote
+  \let\curfing\fingnote
+  \def\Ktest{K}\def\cotest{,}\def\btest{b}\def\ftest{f}
+  \def\stest{s}\def\ptest{p}\def\xtest{x}\def\ntest{n}\def\otest{o}
+  \@forc\thisel{#1}{
+      \ifx\thisel\Ktest{}\else
+      \ifx\thisel\cotest\cpos=-\fpos\advance\cpos by \numfrets\advance\cpos by \yoff
+				  \ifnum\cpos > \yoff
+		          	\dlen=\cpos
+		 	      	\advance\dlen by -\yoff
+  				  	\put(\ghor,\yoff){\cvline{\dlen}}
+				  \fi
+				  \prevpos=0
+				  \fpos=0
+				  \fnum=0
+				  \renewcommand\pnow{n}
+				  \renewcommand\fnow{n}
+				  \renewcommand\snow{n}
+				  \advance\ghor by 1
+	  \else\ifx\thisel\btest\let\curnote\basenote
+						\let\curfing\fatfingnote
+      \else\ifx\thisel\ftest\renewcommand\snow{n}\renewcommand\pnow{n}\renewcommand\fnow{y}
+      \else\ifx\thisel\stest\renewcommand\snow{y}\renewcommand\pnow{n}\renewcommand\fnow{n}
+      \else\ifx\thisel\ptest\renewcommand\snow{n}\renewcommand\pnow{y}\renewcommand\fnow{n}
+      \else\ifx\thisel\xtest{\put(\ghor,\yoff){\cvline{\numfrets}}
+			   		     \needsize=\ascale
+			   		     \divide\needsize by 2
+			   		     \unitlength\needsize
+						 \multiply\ghor by 2
+						 \multiply\topline by 2
+						 \advance\topline by -1
+                         \put(\ghor,\topline){\hbox to 0pt{\hss{\dampsymbol}\hss}}
+            }
+      \else\ifx\thisel\otest{\put(\ghor,\yoff){\cvline{\numfrets}}
+          \needsize=\ascale
+          \divide\needsize by 2
+          \unitlength\needsize
+          \multiply\ghor by 2
+          \multiply\topline by 2
+          \advance\topline by -1
+          \put(\ghor,\topline){\hbox to 0pt{\hss{\opensymbol}\hss}}}
+      \else\ifx\thisel\ntest\put(\ghor,\yoff){\cvline{\numfrets}}
+      \else      		
+    	 \if\fnow y \fnum=\thisel
+		 \else\if\snow y \ghor=\thisel\advance\ghor by \xoff
+					     \advance\ghor by -1
+		 \else
+			 \prevpos=\fpos\advance\prevpos by -1
+  		     \fpos=\thisel
+			 \ifnum\fnum > 0
+				  \cpos=\fpos\advance\cpos by -1
+				  \ifnum\cpos > \prevpos
+			        \dlen=\fpos\advance\dlen by -\prevpos
+							 \advance\dlen by -1
+			        \stpos=\topline\advance\stpos by -\fpos
+  		 	        \put(\ghor,\stpos){\cvline{\dlen}}
+				  \fi
+			 \else
+				\put(\ghor,\yoff){\cvline{\numfrets}}
+			 \fi
+   		     \cpos=-\fpos\advance\cpos by \numfrets\advance\cpos by \yoff
+	         {
+   		     \needsize=\ascale
+   		     \divide\needsize by 2
+   		     \unitlength\needsize
+			 \multiply\ghor by 2
+   		     \multiply\cpos by 2
+	   	     \advance\cpos by 1
+			 \ifnum\fnum > 0
+				\put(\ghor,\cpos){\curfing}
+				\put(\ghor,\cpos){$\vcenter{\vskip 0.5em\vbox{\hbox to 0pt{\hss{\fingerfont\number\fnum}\hss}}}$}
+			 \else
+				\put(\ghor,\cpos){\curnote}
+			 \fi
+             }
+		     \let\curnote\stdnote
+			 \let\curfing\fingnote
+		 \fi\fi
+      \fi\fi\fi\fi\fi\fi\fi\fi
+    }
+}
+
+\makeatother
+
+% That's all folks!
+%-------------------------------------------------------------------------
