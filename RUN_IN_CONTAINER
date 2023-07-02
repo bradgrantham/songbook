@@ -1,0 +1,5 @@
+SONGBOOK=kc_songbook
+podman run -it --rm -v $PWD:/data -v $PWD/.guitartexrc:/root/.guitartexrc drpsychick/texlive-guitartex gtx2tex --verbose $SONGBOOK.chopro
+LC_ALL=C sed -i "" -e 's/gchord{/chord{/g' $SONGBOOK.tex
+podman run -it --rm -v $PWD:/data -v $PWD/tools/gchords.sty:/root/texmf/tex/latex/local/gchords.sty drpsychick/texlive-guitartex pdflatex $SONGBOOK.tex
+podman run -it --rm -v $PWD:/data -v $PWD/tools/gchords.sty:/root/texmf/tex/latex/local/gchords.sty drpsychick/texlive-guitartex pdflatex $SONGBOOK.tex

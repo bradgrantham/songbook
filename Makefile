@@ -1,17 +1,24 @@
+# pdflatex has trouble with lithium.chopro.html
+
 KC_SONGS = \
     amie.chopro.html \
     and_she_was.chopro.html \
     badfish.chopro.html \
+    big_yellow_taxi.chopro.html \
     clocks.chopro.html \
     comfortably_numb.chopro.html \
     coming_up_close.chopro.html \
     cruel_to_be_kind.chopro.html \
+    dead_flowers.chopro.html \
     down_under.chopro.html \
     eight_days_a_week.chopro.html \
     flagpole_sitta.chopro.html \
     folsom_prison_blues.chopro.html \
+    give_a_little_bit.chopro.html \
+    gold_dust_woman.chopro.html \
     heart_of_gold.chopro.html \
     high_and_dry.chopro.html \
+    horse.chopro.html \
     horse_with_no_name.chopro.html \
     hotel_california.chopro.html \
     island_in_the_sun.chopro.html \
@@ -28,10 +35,12 @@ KC_SONGS = \
     peaceful_easy_feeling.chopro.html \
     ring_of_fire.chopro.html \
     salty_south.chopro.html \
+    service_and_repair.chopro.html \
     soul_meets_body.chopro.html \
     southern_cross.chopro.html \
     stuck_in_the_middle_with_you.chopro.html \
     sundown.chopro.html \
+    take_it_easy.chopro.html \
     walk_on_the_ocean.chopro.html \
     wasted_on_the_way.chopro.html \
     we_can_work_it_out.chopro.html \

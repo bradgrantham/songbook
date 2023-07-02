@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import subprocess
 import os
@@ -18,8 +18,8 @@ for file in sys.stdin:
     chordpro_htmls.append(file.rstrip())
 
 if len(sys.argv) < 3:
-    print "usage: %s book_title output_filename" % sys.argv[0]
-    print "provide chordpro files line by line on stdin" % sys.argv[0]
+    print("usage: %s book_title output_filename" % sys.argv[0])
+    print("provide chordpro files line by line on stdin" % sys.argv[0])
     sys.exit(1)
 
 book_title = sys.argv[1]
@@ -27,8 +27,8 @@ output_filename = sys.argv[2]
 
 book_date = time.strftime("%B %Y")
 
-print output_filename
-print chordpro_htmls
+print(output_filename)
+print(chordpro_htmls)
 
 chordpro_files = []
 
@@ -44,7 +44,7 @@ def make_chordii(filename, source_lines):
     for line in source_lines:
 
         if comment_re.match(line):
-            print "skipping commented line '%s'" % line
+            print("skipping commented line '%s'" % line)
             next
 
         elif (line.find("{colb}") == 0) or (line.find("{columnbreak}") >= 0):
@@ -60,7 +60,7 @@ def make_chordii(filename, source_lines):
 
             if not match:
 
-                print >>sys.stderr, "warning, didn't parse chord definition '%s', passing through" % line
+                print("warning, didn't parse chord definition '%s', passing through" % line, file=sys.stderr)
                 chordpro_lines.append(line)
 
             else:
@@ -96,6 +96,7 @@ def make_guitartex(filename, source_lines):
     chordpro_lines = []
 
     for line in source_lines:
+        line = line.decode('utf-8')
         if comment_re.match(line):
             next
 
@@ -106,7 +107,7 @@ def make_guitartex(filename, source_lines):
 
             if not match:
 
-                print >>sys.stderr, "warning, didn't parse chord definition '%s', passing through" % line
+                print("warning, didn't parse chord definition '%s', passing through" % line, file=sys.stderr)
                 chordpro_lines.append(line)
 
             else:
@@ -144,7 +145,7 @@ def make_guitartex(filename, source_lines):
 
                 match = columns_re.search(line)
                 if not match:
-                    print >>sys.stderr, "couldn't parse columns directive in %s at line '%s'" % (filename, line)
+                    print("couldn't parse columns directive in %s at line '%s'" % (filename, line), file=sys.stderr)
                     sys.exit(1)
 
                 columns = int(match.group('columns'))
@@ -152,7 +153,7 @@ def make_guitartex(filename, source_lines):
                 in_multicol_mode = True
 
             else:
-                print >>sys.stderr, "two column directives seen in %s" % filename
+                print("two column directives seen in %s" % filename, file=sys.stderr)
                 sys.exit(1)
 
         elif ((line.find("{pagebreak}") >= 0) or (line.find("{pageb}") >= 0) or
@@ -181,7 +182,7 @@ if False:
     ]
     out = make_guitartex("test_file", lines)
     for line in out:
-        print line
+        print(line)
     sys.exit(0)
 
 if False:
@@ -202,7 +203,7 @@ if False:
     ]
     out = make_guitartex("test_file", lines)
     for line in out:
-        print line
+        print(line)
     sys.exit(0)
 
 for html in chordpro_htmls:
@@ -216,7 +217,7 @@ for html in chordpro_htmls:
         chordpro_date = os.path.getmtime(chordpro)
 
     if chordpro_exists and (source_date < chordpro_date):
-        print "%s is later than source file, skipping\n" % chordpro
+        print("%s is later than source file, skipping\n" % chordpro)
         pass
     else:
         source_file = open(source, "r")
@@ -226,7 +227,7 @@ for html in chordpro_htmls:
         result = instance.wait()
         source_file.close()
         if result != 0:
-            print "failed with %d on %s\n" % (result, chordpro)
+            print("failed with %d on %s\n" % (result, chordpro))
             sys.exit(1)
 
         if which_typesetter == GUITARTEX:
@@ -235,7 +236,7 @@ for html in chordpro_htmls:
             chordpro_lines = make_chordii(source, source_lines)
 
         chordpro_file = open(chordpro, "w")
-        print >>chordpro_file, "\n".join(chordpro_lines)
+        print("\n".join(chordpro_lines), file=chordpro_file)
         chordpro_file.close()
    
 if which_typesetter == CHORDII:
@@ -251,7 +252,7 @@ if which_typesetter == CHORDII:
 
         if not firstsong:
             # print >>allsongs, "\n{new_page}\n"
-            print >>allsongs, "\n{new_song}\n"
+            print("\n{new_song}\n", file=allsongs)
         allsongs.write(buffer)
 
         firstsong = False
@@ -263,21 +264,21 @@ elif which_typesetter == GUITARTEX:
     allsongs = open(output_filename, "w")
 
     if guitartex_multicol:
-        print >>allsongs, "{preamble:\usepackage{multicol}}"
+        print("{preamble:\\usepackage{multicol}}", file=allsongs)
 
-    print >> allsongs, "{document_class:book}"
+    print("{document_class:book}", file=allsongs)
 
     # This results in a TeX error!
     # print >> allsongs, "{geometry:letterpaper,margin=.75in}"
-    print >> allsongs, "{geometry:margin=.75in}"
+    print("{geometry:margin=.75in}", file=allsongs)
     # print >> allsongs, "{font_size:10}"
     # black and white printing:
-    print >> allsongs, "{color_chorus:.3,.3,.3}"
+    print("{color_chorus:.3,.3,.3}", file=allsongs)
 
-    print >> allsongs, "{book_title:%s}" % book_title
-    print >> allsongs, "{book_date:%s}" % book_date
+    print("{book_title:%s}" % book_title, file=allsongs)
+    print("{book_date:%s}" % book_date, file=allsongs)
 
     for chordpro in chordpro_files:
-        print >> allsongs, "{include:%s}" % chordpro
+        print("{include:%s}" % chordpro, file=allsongs)
 
     allsongs.close()
