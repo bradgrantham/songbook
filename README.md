@@ -4,6 +4,10 @@ The songs are in ChordPro format, embedded in HTML.
 
 The HTML files reference some Javascript developed by Don Mahurin to reformat the ChordPro as HTML.
 
+jc_songbook.pdf is the Jamcrowd version.  This is slightly longer and contains some songs we like to play in the Jamcrowd that other groups may not know.
+
+kc_songbook.pdf is the songbook that the Karma Chickens used to play at Burning man, and any random group of people may be more likely to know.
+
 # Creating a PDF book
 
 ## Prerequisites:
@@ -16,8 +20,8 @@ The HTML files reference some Javascript developed by Don Mahurin to reformat th
 
 ## Building the PDF
 
-* `make jc_songbook.pdf` to generate the Jamcrowd version.  This is slightly longer and contains some songs we like to play in the Jamcrowd that other groups may not know.
-* `make kc_songbook.pdf` generates the songbook that the Karma Chickens used to play at Burning man, and any random group of people may be more likely to know.
+* `make jc_songbook.pdf` to generate the Jamcrowd version.
+* `make kc_songbook.pdf` to generate the Karma Chickens version.
 
 (The Makefile is also very fragile and needs revamping.)
 
