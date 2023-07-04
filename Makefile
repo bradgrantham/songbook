@@ -1,4 +1,5 @@
 # pdflatex has trouble with lithium.chopro.html
+# take_it_easy.chopro.html isn't done yet
 
 KC_SONGS = \
     amie.chopro.html \
@@ -40,7 +41,6 @@ KC_SONGS = \
     southern_cross.chopro.html \
     stuck_in_the_middle_with_you.chopro.html \
     sundown.chopro.html \
-    take_it_easy.chopro.html \
     walk_on_the_ocean.chopro.html \
     wasted_on_the_way.chopro.html \
     we_can_work_it_out.chopro.html \
@@ -117,10 +117,16 @@ jc_songbook.chopro: $(JC_SONGS)
 	for i in $^ ; do echo "$$i" ; done | tools/html2guitartex "Jamcrowd Songbook" jc_songbook.chopro
 
 jc_songbook.pdf: jc_songbook.chopro
-	gtx2tex --output=pdf jc_songbook.chopro
+	gtx2tex jc_songbook.chopro
+	LC_ALL=C sed -i "" -e 's/gchord{/chord{/g' jc_songbook.tex
+	pdflatex jc_songbook.tex
+	pdflatex jc_songbook.tex
 
 kc_songbook.chopro: $(KC_SONGS)
 	for i in $^ ; do echo "$$i" ; done | tools/html2guitartex "Jamcrowd Songbook, Karma Chickens Edition" kc_songbook.chopro
 
 kc_songbook.pdf: kc_songbook.chopro
-	gtx2tex --output=pdf kc_songbook.chopro
+	gtx2tex kc_songbook.chopro
+	LC_ALL=C sed -i "" -e 's/gchord{/chord{/g' kc_songbook.tex
+	pdflatex kc_songbook.tex
+	pdflatex kc_songbook.tex
