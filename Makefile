@@ -27,7 +27,6 @@ KC_SONGS = \
     jumper.chopro.html \
     last_train_to_clarksville.chopro.html \
     learning_to_fly.chopro.html \
-    lola.chopro.html \
     long_ride_home.chopro.html \
     mary_janes_last_dance.chopro.html \
     my_sweet_annette.chopro.html \
