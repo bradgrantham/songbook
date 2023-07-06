@@ -1,5 +1,6 @@
 # pdflatex has trouble with lithium.chopro.html
 # take_it_easy.chopro.html isn't done yet
+# give_a_little_bit.chopro.html isnt done yet
 
 KC_SONGS = \
     amie.chopro.html \
@@ -15,7 +16,6 @@ KC_SONGS = \
     eight_days_a_week.chopro.html \
     flagpole_sitta.chopro.html \
     folsom_prison_blues.chopro.html \
-    give_a_little_bit.chopro.html \
     gold_dust_woman.chopro.html \
     heart_of_gold.chopro.html \
     high_and_dry.chopro.html \
