@@ -119,6 +119,7 @@ jc_songbook.pdf: jc_songbook.chopro
 	gtx2tex jc_songbook.chopro
 	LC_ALL=C sed -i "" -e 's/gchord{/chord{/g' jc_songbook.tex
 	pdflatex jc_songbook.tex
+        makeindex kc_songbook.idx
 	pdflatex jc_songbook.tex
 
 kc_songbook.chopro: $(KC_SONGS)
@@ -128,4 +129,5 @@ kc_songbook.pdf: kc_songbook.chopro
 	gtx2tex kc_songbook.chopro
 	LC_ALL=C sed -i "" -e 's/gchord{/chord{/g' kc_songbook.tex
 	pdflatex kc_songbook.tex
+        makeindex kc_songbook.idx
 	pdflatex kc_songbook.tex

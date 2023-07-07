@@ -13,7 +13,9 @@ kc_songbook.pdf is the songbook that the Karma Chickens used to play at Burning 
 ## Prerequisites:
 
 * `pdflatex` - I was able to install this on macOS through the `texlive-latex` port.
-* `gchords.sty` - I'm using 1.21, available from https://kasper.phi-sci.com/gchords/.  I've also vendored a copy in tools/.
+* `makeindex` - I was able to install this on macOS through the `texlive-basic` port.
+* `titlepic.sty` - I've also vendored a copy in tools/ but you'll have to manage installing that yourself.
+* `gchords.sty` - I'm using 1.21, available from https://kasper.phi-sci.com/gchords/.  I've also vendored a copy in tools/ but you'll have to manage installing that yourself.
 * `gtx2tex` - This can be installed from https://sourceforge.net/projects/guitartex/files/GuitarTeX/GuitarTeX-2.8.2/
 
 (GuitarTeX 2.8.2 is more than 20 years old and very fragile.  If you have trouble getting it to run, you may have some luck by instead using the Docker image from https://github.com/SickHub/docker-texlive-guitartex, but you're probably going to have to wing it.  RUN_IN_CONTAINER has the commands using `podman` to execute `gtx2tex` and then `pdflatex` inside the image.)
