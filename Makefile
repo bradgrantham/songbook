@@ -18,9 +18,5 @@ build/%.pdf: songs/%.cho | build
 build/%.html: songs/%.cho | build
 	chordpro -o $@ $<
 
-
 $(SONGBOOK): $(SONG_SRC)
 	chordpro -o $@ $^
-
-clean:
-	rm -rf build
